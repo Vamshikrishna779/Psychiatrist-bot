@@ -159,7 +159,7 @@
 
             const avatar = document.createElement('div');
             avatar.classList.add('avatar');
-            avatar.innerHTML = `<img src="/static/${sender === 'user' ? 'avatar_user.png' : 'avatar_bot.png'}" alt="${sender === 'user' ? 'User' : 'Bot'} avatar">`;
+            avatar.innerHTML = `<img src="${sender === 'user' ? 'avatar_user.png' : 'avatar_bot.png'}" alt="${sender === 'user' ? 'User' : 'Bot'} avatar">`;
 
             const content = document.createElement('div');
             content.classList.add('bubble');
