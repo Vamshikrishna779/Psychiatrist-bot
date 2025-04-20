@@ -1,13 +1,14 @@
-import requests
-from flask import Flask, jsonify, render_template, request
-from dotenv import load_dotenv
 import os
+import requests
+from flask import Flask, jsonify, send_from_directory, request
+from dotenv import load_dotenv
 
 load_dotenv()
+
 app = Flask(__name__)
 
-# Update to Gemini 1.5 Pro or 1.0 Pro
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")  # Set in .env
+# Set your API details (ensure you have set the GEMINI_API_KEY in .env file)
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent"
 
 def ask_gemini(prompt):
@@ -35,7 +36,8 @@ def ask_gemini(prompt):
 
 @app.route('/')
 def home():
-    return render_template('index.html')
+    # Serve the index.html from the root folder (no need for templates directory)
+    return send_from_directory('.', 'index.html')
 
 @app.route('/get', methods=['POST'])
 def get_bot_response():
