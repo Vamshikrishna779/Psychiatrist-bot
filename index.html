@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Psychiatrist Bot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f2f2f2;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        
+        .app-bar {
+            background-color: #1e1e2f;
+            color: white;
+            padding: 12px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            background-color: #fff;
+            border-top: 1px solid #ccc;
+            border-bottom: 1px solid #ccc;
+        }
+        
+        .message {
+            display: flex;
+            max-width: 80%;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .user {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+        
+        .bot {
+            align-self: flex-start;
+        }
+        
+        .avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 10%;
+            overflow: hidden;
+            flex-shrink: 0;
+            background-color: #f0f0f0;
+        }
+        
+        .avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .bubble {
+            padding: 12px 16px;
+            border-radius: 18px;
+            position: relative;
+            word-wrap: break-word;
+            max-width: calc(100% - 50px);
+        }
+        
+        .user .bubble {
+            background-color: #4a76a8;
+            color: white;
+            border-bottom-right-radius: 2px;
+        }
+        
+        .bot .bubble {
+            background-color: white;
+            color: #333;
+            border-bottom-left-radius: 2px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+        
+        .timestamp {
+            font-size: 10px;
+            color: #666;
+            display: block;
+            text-align: right;
+            margin-top: 5px;
+        }
+        
+        .input-bar {
+            display: flex;
+            padding: 15px;
+            background-color: white;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        #user-input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 24px;
+            outline: none;
+            font-size: 1em;
+        }
+        
+        button {
+            padding: 10px 20px;
+            margin-left: 10px;
+            background-color: #1e1e2f;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        button:hover {
+            background-color: #3a6698;
+        }
+        
+        .disclaimer {
+            font-size: 0.8em;
+            color: #666;
+            padding: 10px 20px;
+            text-align: center;
+            border-top: 1px solid #eee;
+            background-color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-bar">Psychiatrist Bot</div>
+
+    <div class="chat-container" id="chat-container">
+        <!-- Messages will appear here -->
+    </div>
+
+    <div class="disclaimer">
+        Remember: I'm an AI assistant, not a licensed professional. For serious concerns, please consult a healthcare provider.
+    </div>
+
+    <div class="input-bar">
+        <input type="text" id="user-input" placeholder="Enter your message..." />
+        <button onclick="sendMessage()">Send</button>
+    </div>
+
+    <script>
+        // Function to create a message with avatar and timestamp
+        function createMessage(sender, text) {
+            const container = document.createElement('div');
+            container.classList.add('message', sender === 'user' ? 'user' : 'bot');
+
+            const avatar = document.createElement('div');
+            avatar.classList.add('avatar');
+            avatar.innerHTML = `<img src="/static/${sender === 'user' ? 'avatar_user.png' : 'avatar_bot.png'}" alt="${sender === 'user' ? 'User' : 'Bot'} avatar">`;
+
+            const content = document.createElement('div');
+            content.classList.add('bubble');
+            const time = new Date().toTimeString().split(' ')[0].slice(0, 5);
+
+            // Format text with paragraphs
+            const formattedText = text.replace(/\n/g, '<br>');
+            content.innerHTML = `<p>${formattedText}</p><span class="timestamp">${time}</span>`;
+
+            container.appendChild(avatar);
+            container.appendChild(content);
+
+            document.getElementById('chat-container').appendChild(container);
+            document.getElementById('chat-container').scrollTop = document.getElementById('chat-container').scrollHeight;
+        }
+
+        // Function to initialize the chatbot with an introduction message
+        function startChat() {
+            const introMessage = "Hello, I'm Psychiatrist Bot. I'm here to provide emotional support and information about mental health. You can talk to me about stress, anxiety, depression, and other concerns. While I'm not a substitute for professional help, I'm here to listen and offer support. What's on your mind today?";
+            createMessage("bot", introMessage);
+        }
+
+        // Function to send a message and get the bot's response
+        async function sendMessage() {
+            const input = document.getElementById("user-input");
+            const msg = input.value.trim();
+            if (!msg) return;
+
+            createMessage("user", msg);
+            input.value = "";
+
+            // Show typing indicator
+            const typingIndicator = document.createElement('div');
+            typingIndicator.classList.add('message', 'bot');
+            typingIndicator.innerHTML = `
+                <div class="avatar">
+                    <img src="/static/bot_avatar.png" alt="Bot avatar">
+                </div>
+                <div class="bubble">
+                    <p>Typing...</p>
+                </div>
+            `;
+            document.getElementById('chat-container').appendChild(typingIndicator);
+            document.getElementById('chat-container').scrollTop = document.getElementById('chat-container').scrollHeight;
+
+            try {
+                const response = await fetch("/get", {
+                    method: "POST",
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ message: msg })
+                });
+
+                const data = await response.json();
+                
+                // Remove typing indicator
+                document.getElementById('chat-container').removeChild(typingIndicator);
+                
+                // Add bot response
+                createMessage("bot", data.response);
+            } catch (error) {
+                document.getElementById('chat-container').removeChild(typingIndicator);
+                createMessage("bot", "Sorry, I'm having trouble connecting. Please try again later.");
+            }
+        }
+
+        // Handle Enter key press
+        document.getElementById('user-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // Initialize the chat when the page loads
+        window.onload = startChat;
+    </script>
+</body>
+</html>
